@@ -1,0 +1,36 @@
+---
+import '../styles/global.css';
+export interface Props {
+  title?: string;
+  description?: string;
+}
+const {
+  title = 'Ember & Oak — hand-poured candles',
+  description = 'Small-batch, slow-burning candles hand-poured in the UK. Amber, fig, oud and more.'
+} = Astro.props;
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://example.com';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={new URL(Astro.url.pathname, siteUrl).toString()} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Store',
+      name: 'Ember & Oak',
+      description,
+      url: siteUrl,
+    })} />
+  </head>
+  <body class="min-h-screen">
+    <slot />
+  </body>
+</html>

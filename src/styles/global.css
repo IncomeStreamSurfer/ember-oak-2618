@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #1a1714;
+  --paper: #f7f2eb;
+  --ember: #b5482a;
+  --oak: #6d4a2f;
+  --cream: #efe6d7;
+}
+
+html { background: var(--paper); color: var(--ink); }
+body { font-family: ui-serif, Georgia, "Cormorant Garamond", serif; }
+.font-sans { font-family: ui-sans-serif, system-ui, -apple-system, "Inter", sans-serif; }
+
+.ember-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: background 200ms ease, transform 200ms ease;
+}
+.ember-button:hover { background: var(--ember); transform: translateY(-1px); }
+
+.ember-link { text-decoration: underline; text-decoration-color: rgba(181, 72, 42, 0.5); text-underline-offset: 4px; }
+.ember-link:hover { text-decoration-color: var(--ember); }
+
+@keyframes flicker {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+.flame { animation: flicker 2s ease-in-out infinite; }
