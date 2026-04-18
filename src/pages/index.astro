@@ -1,15 +1,59 @@
 ---
 import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import ProductCard from '../components/ProductCard.astro';
+import { getProducts } from '../lib/supabase';
+
+const products = await getProducts();
 ---
-<Base title="Ember & Oak — building...">
-  <main class="min-h-screen flex items-center justify-center px-6">
-    <div class="text-center max-w-xl">
-      <div class="text-6xl mb-6 flame">🕯️</div>
-      <h1 class="text-4xl md:text-5xl font-semibold mb-4">Ember &amp; Oak</h1>
-      <p class="text-lg text-neutral-600 mb-8 font-sans">Hand-pouring your shop now. The candles are cooling.</p>
-      <div class="inline-block px-4 py-2 rounded-full bg-[var(--cream)] text-sm font-sans text-[var(--oak)]">
-        Building your store · please wait
-      </div>
+<Base title="Ember & Oak — hand-poured candles" description="Small-batch, slow-burning candles hand-poured in the UK. Amber, fig, oud and more.">
+  <Nav />
+
+  <section class="max-w-6xl mx-auto px-6 pt-16 pb-10 md:pt-24 md:pb-16 text-center">
+    <p class="font-sans uppercase tracking-[0.3em] text-xs text-[var(--ember)] mb-4">Est. candles · made slowly</p>
+    <h1 class="text-5xl md:text-7xl font-semibold leading-[0.95] mb-6">Candles that<br /><em class="not-italic text-[var(--ember)]">burn beautifully.</em></h1>
+    <p class="max-w-xl mx-auto text-lg text-neutral-600 font-sans">Six hand-poured, slow-aged scents — from coastal amber to smoked oud. Each candle rests for 72 hours before it's packed.</p>
+    <div class="mt-8"><a href="#shop" class="ember-button">Shop the six</a></div>
+  </section>
+
+  <section id="shop" class="max-w-6xl mx-auto px-6 py-10">
+    <div class="flex items-baseline justify-between mb-8">
+      <h2 class="text-2xl md:text-3xl font-semibold">The collection</h2>
+      <span class="font-sans text-sm text-neutral-500">{products.length} candles</span>
     </div>
-  </main>
+    {products.length === 0 ? (
+      <p class="font-sans text-neutral-500">Our candles are cooling — check back in a moment.</p>
+    ) : (
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+        {products.map((p) => <ProductCard product={p} />)}
+      </div>
+    )}
+  </section>
+
+  <section class="max-w-4xl mx-auto px-6 py-20 text-center">
+    <h2 class="text-3xl md:text-4xl font-semibold mb-4">Slow craft, honest ingredients.</h2>
+    <p class="text-lg text-neutral-600 font-sans">Soy-coconut wax, cotton wicks, and fragrance oils sourced from independent perfumers. No phthalates, ever.</p>
+  </section>
+
+  <Footer />
+
+  <script>
+    import { addToCart } from '../scripts/cart.ts';
+    document.querySelectorAll<HTMLButtonElement>('.add-to-cart-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        addToCart({
+          id: btn.dataset.id!,
+          slug: btn.dataset.slug!,
+          name: btn.dataset.name!,
+          price_pence: parseInt(btn.dataset.price!, 10),
+          image_url: btn.dataset.image || '',
+        });
+        const orig = btn.textContent;
+        btn.textContent = 'Added ✓';
+        btn.disabled = true;
+        setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1200);
+      });
+    });
+  </script>
 </Base>

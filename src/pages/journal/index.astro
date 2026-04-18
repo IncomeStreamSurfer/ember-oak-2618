@@ -1,0 +1,37 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import { supabase } from '../../lib/supabase';
+
+const { data } = await supabase
+  .from('candle_content')
+  .select('*')
+  .not('published_at', 'is', null)
+  .order('published_at', { ascending: false });
+
+const posts = (data || []) as Array<{ slug: string; title: string; seo_description: string | null; published_at: string | null }>;
+---
+<Base title="Journal — Ember & Oak" description="Notes on scent, craft, and slow evenings.">
+  <Nav />
+  <main class="max-w-3xl mx-auto px-6 py-16">
+    <p class="font-sans uppercase tracking-[0.3em] text-xs text-[var(--ember)] mb-4">Journal</p>
+    <h1 class="text-4xl md:text-5xl font-semibold mb-10">Notes from the studio.</h1>
+    {posts.length === 0 ? (
+      <p class="font-sans text-neutral-500">No entries yet. Check back soon.</p>
+    ) : (
+      <div class="space-y-10">
+        {posts.map((p) => (
+          <article>
+            <a href={`/journal/${p.slug}`} class="block group">
+              <h2 class="text-2xl font-semibold group-hover:text-[var(--ember)]">{p.title}</h2>
+              {p.seo_description && <p class="mt-2 text-neutral-600">{p.seo_description}</p>}
+              {p.published_at && <p class="mt-2 font-sans text-sm text-neutral-500">{new Date(p.published_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>}
+            </a>
+          </article>
+        ))}
+      </div>
+    )}
+  </main>
+  <Footer />
+</Base>

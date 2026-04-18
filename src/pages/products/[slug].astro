@@ -1,0 +1,112 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import { getProductBySlug } from '../../lib/supabase';
+import { formatPrice } from '../../lib/stripe';
+
+const { slug } = Astro.params;
+const product = slug ? await getProductBySlug(slug) : null;
+
+if (!product) {
+  return Astro.redirect('/');
+}
+
+const siteUrl = import.meta.env.PUBLIC_SITE_URL || 'https://example.com';
+const ld = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: product.name,
+  description: product.description,
+  image: product.image_url,
+  sku: product.slug,
+  offers: {
+    '@type': 'Offer',
+    price: (product.price_pence / 100).toFixed(2),
+    priceCurrency: product.currency.toUpperCase(),
+    availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+    url: `${siteUrl}/products/${product.slug}`,
+  },
+};
+---
+<Base title={`${product.name} — Ember & Oak`} description={product.description || ''}>
+  <Nav />
+
+  <script type="application/ld+json" set:html={JSON.stringify(ld)} />
+
+  <main class="max-w-5xl mx-auto px-6 py-12 grid md:grid-cols-2 gap-10">
+    <div class="rounded-2xl bg-[var(--cream)] overflow-hidden aspect-[4/5]">
+      {product.image_url ? (
+        <img src={product.image_url} alt={product.name} class="w-full h-full object-cover" />
+      ) : (
+        <div class="w-full h-full flex items-center justify-center text-6xl">🕯️</div>
+      )}
+    </div>
+
+    <div>
+      <a href="/" class="font-sans text-sm text-neutral-500 ember-link">← Back to the shop</a>
+      <h1 class="text-4xl md:text-5xl font-semibold mt-4 mb-2">{product.name}</h1>
+      <p class="font-sans uppercase tracking-wider text-xs text-[var(--ember)]">{product.scent_notes}</p>
+
+      <p class="text-2xl mt-6 font-sans">{formatPrice(product.price_pence, product.currency)}</p>
+
+      <p class="text-lg text-neutral-700 mt-6 leading-relaxed">{product.description}</p>
+
+      <dl class="grid grid-cols-2 gap-4 mt-8 font-sans text-sm">
+        {product.burn_time_hours && (
+          <div><dt class="text-neutral-500">Burn time</dt><dd class="mt-1">≈ {product.burn_time_hours} hrs</dd></div>
+        )}
+        {product.weight_grams && (
+          <div><dt class="text-neutral-500">Weight</dt><dd class="mt-1">{product.weight_grams}g</dd></div>
+        )}
+        <div><dt class="text-neutral-500">Wax</dt><dd class="mt-1">Soy-coconut blend</dd></div>
+        <div><dt class="text-neutral-500">Wick</dt><dd class="mt-1">Cotton, lead-free</dd></div>
+      </dl>
+
+      <div class="mt-8 flex items-center gap-3">
+        <div class="inline-flex items-center rounded-full border border-[var(--cream)] font-sans">
+          <button type="button" id="qty-minus" class="px-4 py-2 text-lg">−</button>
+          <span id="qty-display" class="px-4 py-2 min-w-[2.5rem] text-center">1</span>
+          <button type="button" id="qty-plus" class="px-4 py-2 text-lg">+</button>
+        </div>
+        <button
+          type="button"
+          id="add-to-cart-btn"
+          class="ember-button flex-1 justify-center"
+          data-id={product.id}
+          data-slug={product.slug}
+          data-name={product.name}
+          data-price={product.price_pence}
+          data-image={product.image_url || ''}
+        >Add to cart · {formatPrice(product.price_pence, product.currency)}</button>
+      </div>
+      <p class="mt-4 font-sans text-xs text-neutral-500">Free UK shipping on orders over £60. Hand-poured and rested for 72 hours before shipping.</p>
+    </div>
+  </main>
+
+  <Footer />
+
+  <script>
+    import { addToCart } from '../../scripts/cart.ts';
+
+    let qty = 1;
+    const qtyDisplay = document.getElementById('qty-display')!;
+    document.getElementById('qty-minus')?.addEventListener('click', () => { qty = Math.max(1, qty - 1); qtyDisplay.textContent = String(qty); });
+    document.getElementById('qty-plus')?.addEventListener('click', () => { qty = Math.min(20, qty + 1); qtyDisplay.textContent = String(qty); });
+
+    const btn = document.getElementById('add-to-cart-btn') as HTMLButtonElement | null;
+    btn?.addEventListener('click', () => {
+      addToCart({
+        id: btn.dataset.id!,
+        slug: btn.dataset.slug!,
+        name: btn.dataset.name!,
+        price_pence: parseInt(btn.dataset.price!, 10),
+        image_url: btn.dataset.image || '',
+      }, qty);
+      const orig = btn.textContent;
+      btn.textContent = `Added ${qty} ✓`;
+      btn.disabled = true;
+      setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
+    });
+  </script>
+</Base>

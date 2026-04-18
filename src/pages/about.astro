@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+---
+<Base title="About — Ember & Oak" description="The small UK studio behind Ember & Oak candles.">
+  <Nav />
+  <main class="max-w-3xl mx-auto px-6 py-16">
+    <p class="font-sans uppercase tracking-[0.3em] text-xs text-[var(--ember)] mb-4">Our story</p>
+    <h1 class="text-4xl md:text-5xl font-semibold mb-8">Made slowly. Burned beautifully.</h1>
+    <div class="space-y-6 text-lg leading-relaxed text-neutral-700">
+      <p>Ember &amp; Oak began in a cottage kitchen with a copper pan, a dusty thermometer, and too many opinions about fig leaves.</p>
+      <p>Today, we're still small. Every candle in our six-scent collection is hand-poured in batches of forty and rested for 72 hours before it's packed — because a candle that's rushed, doesn't burn properly.</p>
+      <p>We use a soy-coconut wax for a clean, slow burn, cotton wicks free of lead and zinc, and fragrance oils from independent perfumers across the UK and France.</p>
+      <p>Thank you for lighting one with us.</p>
+    </div>
+  </main>
+  <Footer />
+</Base>

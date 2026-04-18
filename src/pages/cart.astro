@@ -1,0 +1,129 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+---
+<Base title="Your cart — Ember & Oak">
+  <Nav />
+
+  <main class="max-w-4xl mx-auto px-6 py-12">
+    <h1 class="text-4xl md:text-5xl font-semibold mb-8">Your cart</h1>
+
+    <div id="cart-empty" class="hidden text-center py-20">
+      <div class="text-6xl mb-4">🕯️</div>
+      <p class="text-neutral-500 font-sans mb-6">Your cart is empty. Let's fix that.</p>
+      <a href="/" class="ember-button">Browse the six</a>
+    </div>
+
+    <div id="cart-items" class="space-y-5"></div>
+
+    <div id="cart-summary" class="hidden mt-10 pt-8 border-t border-[var(--cream)]">
+      <div class="flex items-baseline justify-between mb-2 font-sans">
+        <span class="text-neutral-500">Subtotal</span>
+        <span id="subtotal" class="text-xl">£0.00</span>
+      </div>
+      <div class="flex items-baseline justify-between mb-6 font-sans">
+        <span class="text-neutral-500">Shipping</span>
+        <span id="shipping" class="text-sm">Calculated at checkout</span>
+      </div>
+      <button id="checkout-btn" class="ember-button w-full justify-center text-base">Checkout securely with Stripe →</button>
+      <p id="checkout-error" class="hidden mt-3 text-sm text-red-600 font-sans"></p>
+      <p class="mt-4 text-xs text-neutral-500 font-sans text-center">Test card: 4242 4242 4242 4242, any future date, any CVC.</p>
+    </div>
+  </main>
+
+  <Footer />
+
+  <script>
+    import { readCart, updateQuantity, removeItem } from '../scripts/cart.ts';
+
+    const fmt = (p: number) => '£' + (p / 100).toFixed(2);
+
+    function render() {
+      const cart = readCart();
+      const empty = document.getElementById('cart-empty')!;
+      const list = document.getElementById('cart-items')!;
+      const summary = document.getElementById('cart-summary')!;
+
+      if (cart.length === 0) {
+        empty.classList.remove('hidden');
+        summary.classList.add('hidden');
+        list.innerHTML = '';
+        return;
+      }
+
+      empty.classList.add('hidden');
+      summary.classList.remove('hidden');
+
+      list.innerHTML = cart
+        .map(
+          (item) => `
+          <div class="flex items-center gap-5 py-4 border-b border-[var(--cream)]">
+            <a href="/products/${item.slug}" class="shrink-0 w-20 h-24 rounded-lg overflow-hidden bg-[var(--cream)]">
+              ${item.image_url ? `<img src="${item.image_url}" alt="${escapeHtml(item.name)}" class="w-full h-full object-cover">` : '<div class="w-full h-full flex items-center justify-center text-2xl">🕯️</div>'}
+            </a>
+            <div class="flex-1">
+              <a href="/products/${item.slug}" class="font-semibold hover:text-[var(--ember)]">${escapeHtml(item.name)}</a>
+              <div class="font-sans text-sm text-neutral-500 mt-1">${fmt(item.price_pence)} each</div>
+              <div class="mt-2 inline-flex items-center rounded-full border border-[var(--cream)] font-sans text-sm">
+                <button type="button" class="px-3 py-1" data-action="dec" data-id="${item.id}">−</button>
+                <span class="px-3 py-1 min-w-[2rem] text-center">${item.quantity}</span>
+                <button type="button" class="px-3 py-1" data-action="inc" data-id="${item.id}">+</button>
+              </div>
+              <button type="button" data-action="remove" data-id="${item.id}" class="ml-4 font-sans text-sm text-neutral-500 hover:text-[var(--ember)] ember-link">Remove</button>
+            </div>
+            <div class="font-sans">${fmt(item.price_pence * item.quantity)}</div>
+          </div>
+        `,
+        )
+        .join('');
+
+      const subtotal = cart.reduce((s, i) => s + i.price_pence * i.quantity, 0);
+      document.getElementById('subtotal')!.textContent = fmt(subtotal);
+
+      list.querySelectorAll<HTMLButtonElement>('button[data-action]').forEach((b) => {
+        b.addEventListener('click', () => {
+          const id = b.dataset.id!;
+          const action = b.dataset.action!;
+          const current = readCart().find((c) => c.id === id);
+          if (!current) return;
+          if (action === 'inc') updateQuantity(id, current.quantity + 1);
+          else if (action === 'dec') updateQuantity(id, current.quantity - 1);
+          else if (action === 'remove') removeItem(id);
+          render();
+        });
+      });
+    }
+
+    function escapeHtml(s: string) {
+      return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+    }
+
+    render();
+
+    document.getElementById('checkout-btn')?.addEventListener('click', async () => {
+      const cart = readCart();
+      if (!cart.length) return;
+      const btn = document.getElementById('checkout-btn') as HTMLButtonElement;
+      const err = document.getElementById('checkout-error')!;
+      err.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = 'Creating secure checkout…';
+      try {
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: cart.map((c) => ({ id: c.id, quantity: c.quantity })) }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.url) throw new Error(data.error || 'Checkout failed');
+        window.location.href = data.url;
+      } catch (e: any) {
+        err.textContent = e?.message || 'Something went wrong.';
+        err.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Checkout securely with Stripe →';
+      }
+    });
+  </script>
+</Base>
