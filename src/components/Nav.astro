@@ -1,0 +1,41 @@
+---
+const path = Astro.url.pathname;
+const isActive = (p: string) => path === p || (p !== '/' && path.startsWith(p));
+---
+<header class="border-b border-[var(--cream)]">
+  <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2">
+      <span class="text-xl">🕯️</span>
+      <span class="font-semibold tracking-wide">Ember &amp; Oak</span>
+    </a>
+    <nav class="font-sans text-sm flex items-center gap-6">
+      <a href="/" class={isActive('/') ? 'text-[var(--ember)]' : 'hover:text-[var(--ember)]'}>Shop</a>
+      <a href="/journal" class={isActive('/journal') ? 'text-[var(--ember)]' : 'hover:text-[var(--ember)]'}>Journal</a>
+      <a href="/about" class={isActive('/about') ? 'text-[var(--ember)]' : 'hover:text-[var(--ember)]'}>About</a>
+      <a href="/cart" class="relative flex items-center gap-1 hover:text-[var(--ember)]">
+        <span>Cart</span>
+        <span id="cart-count" class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-[var(--ink)] text-[var(--paper)] text-xs">0</span>
+      </a>
+    </nav>
+  </div>
+</header>
+<script is:inline>
+  (function updateCount() {
+    try {
+      const raw = localStorage.getItem('emberoak_cart');
+      const cart = raw ? JSON.parse(raw) : [];
+      const n = cart.reduce((s, i) => s + (i.quantity || 0), 0);
+      const el = document.getElementById('cart-count');
+      if (el) el.textContent = String(n);
+    } catch (e) {}
+  })();
+  window.addEventListener('emberoak:cart-changed', () => {
+    try {
+      const raw = localStorage.getItem('emberoak_cart');
+      const cart = raw ? JSON.parse(raw) : [];
+      const n = cart.reduce((s, i) => s + (i.quantity || 0), 0);
+      const el = document.getElementById('cart-count');
+      if (el) el.textContent = String(n);
+    } catch (e) {}
+  });
+</script>

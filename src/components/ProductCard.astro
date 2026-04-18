@@ -1,0 +1,38 @@
+---
+import type { Product } from '../lib/supabase';
+import { formatPrice } from '../lib/stripe';
+interface Props { product: Product; }
+const { product } = Astro.props;
+---
+<article class="group">
+  <a href={`/products/${product.slug}`} class="block overflow-hidden rounded-2xl bg-[var(--cream)] aspect-[4/5] mb-4">
+    {product.image_url ? (
+      <img
+        src={product.image_url}
+        alt={product.name}
+        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        loading="lazy"
+      />
+    ) : (
+      <div class="w-full h-full flex items-center justify-center text-6xl">🕯️</div>
+    )}
+  </a>
+  <div class="flex items-start justify-between gap-3">
+    <div>
+      <h3 class="font-semibold text-lg"><a href={`/products/${product.slug}`} class="hover:text-[var(--ember)]">{product.name}</a></h3>
+      {product.scent_notes && (
+        <p class="font-sans text-xs text-neutral-500 mt-1 uppercase tracking-wide">{product.scent_notes}</p>
+      )}
+    </div>
+    <div class="font-sans text-sm whitespace-nowrap">{formatPrice(product.price_pence, product.currency)}</div>
+  </div>
+  <button
+    type="button"
+    class="mt-3 add-to-cart-btn w-full ember-button justify-center"
+    data-id={product.id}
+    data-slug={product.slug}
+    data-name={product.name}
+    data-price={product.price_pence}
+    data-image={product.image_url || ''}
+  >Add to cart</button>
+</article>

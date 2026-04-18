@@ -1,0 +1,33 @@
+---
+const year = new Date().getFullYear();
+---
+<footer class="mt-24 border-t border-[var(--cream)]">
+  <div class="max-w-6xl mx-auto px-6 py-10 grid md:grid-cols-3 gap-8 font-sans text-sm text-neutral-600">
+    <div>
+      <div class="flex items-center gap-2 mb-3">
+        <span>🕯️</span>
+        <span class="font-semibold text-[var(--ink)]">Ember &amp; Oak</span>
+      </div>
+      <p>Hand-poured, small-batch candles. Made slowly in the UK.</p>
+    </div>
+    <div>
+      <h4 class="text-[var(--ink)] font-semibold mb-3">Shop</h4>
+      <ul class="space-y-2">
+        <li><a href="/" class="ember-link">All candles</a></li>
+        <li><a href="/cart" class="ember-link">Your cart</a></li>
+        <li><a href="/journal" class="ember-link">Journal</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="text-[var(--ink)] font-semibold mb-3">Studio</h4>
+      <ul class="space-y-2">
+        <li><a href="/about" class="ember-link">Our story</a></li>
+        <li>Returns within 30 days</li>
+        <li>UK shipping £4.95</li>
+      </ul>
+    </div>
+  </div>
+  <div class="max-w-6xl mx-auto px-6 pb-10 text-xs font-sans text-neutral-500">
+    © {year} Ember &amp; Oak. All rights reserved.
+  </div>
+</footer>
